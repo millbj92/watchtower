@@ -1,0 +1,6 @@
+.env*
+
+# Add the private key to the gitignore
+.env.local
+
+*ext.md
