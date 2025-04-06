@@ -18,12 +18,12 @@ const IncidentList: React.FC<IncidentListProps> = ({ incidents }) => {
             {incident.transaction_hash && (
               <p>
                 <a
-                  href={`https://basescan.org/tx/${incident.transaction_hash}`}
+                  href={`https://sepolia.etherscan.io/tx/${incident.transaction_hash}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-500 underline"
                 >
-                  View on BaseScan
+                  View on Etherscan
                 </a>
               </p>
             )}
