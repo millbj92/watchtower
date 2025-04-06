@@ -27,8 +27,6 @@ const IncidentForm: React.FC<IncidentFormProps> = ({ addIncident }) => {
   const [error, setError] = useState<string | null>(null);
   const [txStatus, setTxStatus] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
-  const [provider, setProvider] = useState<ethers.BrowserProvider | null>(null);
-  const [signer, setSigner] = useState<ethers.JsonRpcSigner | null>(null);
   const [contract, setContract] = useState<ethers.Contract | null>(null);
   const [location, setLocation] = useState<IncidentLocation | null>(null);
 
@@ -38,14 +36,10 @@ const IncidentForm: React.FC<IncidentFormProps> = ({ addIncident }) => {
         try {
           // Initialize the provider
           const tmpProvider = new ethers.BrowserProvider(window.ethereum);
-          setProvider(tmpProvider);
-          console.log("Provider initialized:", tmpProvider);
 
           // Request accounts and get the signer
           await window.ethereum.request({ method: "eth_requestAccounts" });
           const tmpSigner = await tmpProvider.getSigner();
-          setSigner(tmpSigner ?? null);
-          console.log("Signer initialized:", tmpSigner);
 
           // Fetch the ABI and contract address
           const abiResponse = await fetch("/WatchtowerLogger-abi.json");
@@ -64,8 +58,6 @@ const IncidentForm: React.FC<IncidentFormProps> = ({ addIncident }) => {
             tmpSigner
           );
           setContract(tmpContract);
-
-          console.log("Contract initialized:", tmpContract);
         } catch (err) {
           console.error("Error initializing provider:", err);
         }
@@ -177,7 +169,7 @@ const IncidentForm: React.FC<IncidentFormProps> = ({ addIncident }) => {
         <option value="Voter Intimidation">Voter Intimidation</option>
         <option value="Long Wait Times">Long Wait Times</option>
       </select>
-      {/* @ts-ignore */}
+      {/* @ts-expect-error */}
       <SearchBox
         accessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN!}
         placeholder="Search for location"
