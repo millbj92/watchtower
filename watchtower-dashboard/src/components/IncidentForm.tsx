@@ -10,8 +10,8 @@ import { ChangeEvent, FormEvent, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { Incident } from "../data/mockIncidents";
 import { ethers, keccak256 } from "ethers";
-import WatchtowerLoggerABI from "../../../blockchain/artifacts/contracts/WatchtowerLogger-abi.json";
-import WatchtowerLoggerAddress from "../../../blockchain/artifacts/contracts/WatchtowerLogger-address.json";
+//import WatchtowerLoggerABI from "WatchtowerLogger-abi.json";
+//import WatchtowerLoggerAddress from "./WatchtowerLogger-address.json";
 
 interface IncidentFormProps {
   addIncident: (incident: Incident) => void;
@@ -43,12 +43,18 @@ const IncidentForm: React.FC<IncidentFormProps> = ({ addIncident }) => {
     setTxStatus("Submitting to blockchain...");
 
     try {
+      const abiResponse = await fetch("/WatchtowerLogger-abi.json");
+      const WatchtowerLoggerABI = await abiResponse.json();
+      const WatchtowerLoggerAddress = process.env.NEXT_PUBLIC_WATCHTOWER_CONTRACT_ADDRESS;
+      if (!WatchtowerLoggerAddress) {
+        throw new Error("Watchtower contract address not found.");
+      }
       // Log the incident to the blockchain
       const provider = new ethers.BrowserProvider(window.ethereum);
       await window.ethereum.request({ method: "eth_requestAccounts" });
       const signer = provider.getSigner();
       const contract = new ethers.Contract(
-        WatchtowerLoggerAddress.address,
+        WatchtowerLoggerAddress,
         WatchtowerLoggerABI,
         await signer
       );
