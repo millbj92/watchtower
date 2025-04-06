@@ -9,6 +9,12 @@ export type Incident = {
   transaction_hash?: string; // Optional field for transaction hash
 };
 
+export type IncidentLocation = {
+    address: string;
+    latitude: number;
+    longitude: number;
+}
+
 const mockIncidents: Incident[] = [
   {
     id: "1",

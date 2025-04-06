@@ -2,10 +2,9 @@
 
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
-import { Incident } from "../data/mockIncidents";
+import { Incident, IncidentLocation } from "../data/mockIncidents";
 import { ethers, keccak256 } from "ethers";
-//import WatchtowerLoggerABI from "WatchtowerLogger-abi.json";
-//import WatchtowerLoggerAddress from "./WatchtowerLogger-address.json";
+import { SearchBox } from "@mapbox/search-js-react";
 
 declare global {
   interface Window {
@@ -31,45 +30,50 @@ const IncidentForm: React.FC<IncidentFormProps> = ({ addIncident }) => {
   const [provider, setProvider] = useState<ethers.BrowserProvider | null>(null);
   const [signer, setSigner] = useState<ethers.JsonRpcSigner | null>(null);
   const [contract, setContract] = useState<ethers.Contract | null>(null);
+  const [location, setLocation] = useState<IncidentLocation | null>(null);
 
-    useEffect(() => {
-        const initProvider = async () => {
-          if (typeof window !== "undefined" && window.ethereum) {
-            try {
-              // Initialize the provider
-              const tmpProvider = new ethers.BrowserProvider(window.ethereum);
-              setProvider(tmpProvider);
-      
-              // Request accounts and get the signer
-              await window.ethereum.request({ method: "eth_requestAccounts" });
-              const tmpSigner = await provider?.getSigner();
-              setSigner(tmpSigner ?? null);
-      
-              // Fetch the ABI and contract address
-              const abiResponse = await fetch("/WatchtowerLogger-abi.json");
-              const WatchtowerLoggerABI = await abiResponse.json();
-              const WatchtowerLoggerAddress =
-                process.env.NEXT_PUBLIC_WATCHTOWER_CONTRACT_ADDRESS;
-      
-              if (!WatchtowerLoggerAddress) {
-                throw new Error("Watchtower contract address not found.");
-              }
-      
-              // Initialize the contract
-              const tmpContract = new ethers.Contract(
-                WatchtowerLoggerAddress,
-                WatchtowerLoggerABI,
-                signer
-              );
-              setContract(tmpContract);
-            } catch (err) {
-              console.error("Error initializing provider:", err);
-            }
+  useEffect(() => {
+    const initProvider = async () => {
+      if (typeof window !== "undefined" && window.ethereum) {
+        try {
+          // Initialize the provider
+          const tmpProvider = new ethers.BrowserProvider(window.ethereum);
+          setProvider(tmpProvider);
+          console.log("Provider initialized:", tmpProvider);
+
+          // Request accounts and get the signer
+          await window.ethereum.request({ method: "eth_requestAccounts" });
+          const tmpSigner = await tmpProvider.getSigner();
+          setSigner(tmpSigner ?? null);
+          console.log("Signer initialized:", tmpSigner);
+
+          // Fetch the ABI and contract address
+          const abiResponse = await fetch("/WatchtowerLogger-abi.json");
+          const WatchtowerLoggerABI = await abiResponse.json();
+          const WatchtowerLoggerAddress =
+            process.env.NEXT_PUBLIC_WATCHTOWER_CONTRACT_ADDRESS;
+
+          if (!WatchtowerLoggerAddress) {
+            throw new Error("Watchtower contract address not found.");
           }
-        };
-      
-        initProvider();
-      }, []); // Empty dependency array ensures this runs only once
+
+          // Initialize the contract
+          const tmpContract = new ethers.Contract(
+            WatchtowerLoggerAddress,
+            WatchtowerLoggerABI,
+            tmpSigner
+          );
+          setContract(tmpContract);
+
+          console.log("Contract initialized:", tmpContract);
+        } catch (err) {
+          console.error("Error initializing provider:", err);
+        }
+      }
+    };
+
+    initProvider();
+  }, []);
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -110,10 +114,10 @@ const IncidentForm: React.FC<IncidentFormProps> = ({ addIncident }) => {
           {
             reporter: formData.reporter,
             incident_type: formData.type,
-            location: formData.location,
+            location: location?.address,
             description: formData.description,
-            latitude: Math.random() * 10 + 30, // Mock latitude
-            longitude: Math.random() * -10 - 90, // Mock longitude
+            latitude: location?.latitude, // Mock latitude
+            longitude: location?.longitude, // Mock longitude
             timestamp: new Date().toISOString(),
             transaction_hash: tx.hash,
           },
@@ -173,13 +177,20 @@ const IncidentForm: React.FC<IncidentFormProps> = ({ addIncident }) => {
         <option value="Voter Intimidation">Voter Intimidation</option>
         <option value="Long Wait Times">Long Wait Times</option>
       </select>
-      <input
-        type="text"
-        name="location"
-        placeholder="Location"
-        value={formData.location}
-        onChange={handleChange}
-        className="border rounded p-2"
+      {/* @ts-ignore */}
+      <SearchBox
+        accessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN!}
+        placeholder="Search for location"
+        onRetrieve={(res) => {
+          const coords = res.features?.[0]?.geometry?.coordinates;
+          const placeName = res.features?.[0]?.properties.address;
+          setLocation({
+            address: placeName,
+            latitude: coords[1],
+            longitude: coords[0],
+          });
+        }}
+        value={location?.address}
       />
       <textarea
         name="description"
@@ -191,7 +202,7 @@ const IncidentForm: React.FC<IncidentFormProps> = ({ addIncident }) => {
       <button
         type="submit"
         className="bg-blue-500 text-white rounded p-2 hover:bg-blue-600"
-        disabled={loading}
+        disabled={loading || location === null}
       >
         {loading ? "Submitting..." : "Submit"}
       </button>
