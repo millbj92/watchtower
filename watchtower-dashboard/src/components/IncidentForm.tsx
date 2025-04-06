@@ -169,7 +169,7 @@ const IncidentForm: React.FC<IncidentFormProps> = ({ addIncident }) => {
         <option value="Voter Intimidation">Voter Intimidation</option>
         <option value="Long Wait Times">Long Wait Times</option>
       </select>
-      {/* @ts-expect-error */}
+      {/* @ts-expect-error Searchbox gives a TS error but works.*/}
       <SearchBox
         accessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN!}
         placeholder="Search for location"
