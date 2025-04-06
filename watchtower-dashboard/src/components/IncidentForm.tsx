@@ -1,18 +1,18 @@
 "use client";
 
-declare global {
-  interface Window {
-    ethereum?: any;
-  }
-}
-
-import { ChangeEvent, FormEvent, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { Incident } from "../data/mockIncidents";
 import { ethers, keccak256 } from "ethers";
 //import WatchtowerLoggerABI from "WatchtowerLogger-abi.json";
 //import WatchtowerLoggerAddress from "./WatchtowerLogger-address.json";
 
+declare global {
+  interface Window {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ethereum?: any;
+  }
+}
 interface IncidentFormProps {
   addIncident: (incident: Incident) => void;
 }
@@ -28,6 +28,48 @@ const IncidentForm: React.FC<IncidentFormProps> = ({ addIncident }) => {
   const [error, setError] = useState<string | null>(null);
   const [txStatus, setTxStatus] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
+  const [provider, setProvider] = useState<ethers.BrowserProvider | null>(null);
+  const [signer, setSigner] = useState<ethers.JsonRpcSigner | null>(null);
+  const [contract, setContract] = useState<ethers.Contract | null>(null);
+
+    useEffect(() => {
+        const initProvider = async () => {
+          if (typeof window !== "undefined" && window.ethereum) {
+            try {
+              // Initialize the provider
+              const tmpProvider = new ethers.BrowserProvider(window.ethereum);
+              setProvider(tmpProvider);
+      
+              // Request accounts and get the signer
+              await window.ethereum.request({ method: "eth_requestAccounts" });
+              const tmpSigner = await provider?.getSigner();
+              setSigner(tmpSigner ?? null);
+      
+              // Fetch the ABI and contract address
+              const abiResponse = await fetch("/WatchtowerLogger-abi.json");
+              const WatchtowerLoggerABI = await abiResponse.json();
+              const WatchtowerLoggerAddress =
+                process.env.NEXT_PUBLIC_WATCHTOWER_CONTRACT_ADDRESS;
+      
+              if (!WatchtowerLoggerAddress) {
+                throw new Error("Watchtower contract address not found.");
+              }
+      
+              // Initialize the contract
+              const tmpContract = new ethers.Contract(
+                WatchtowerLoggerAddress,
+                WatchtowerLoggerABI,
+                signer
+              );
+              setContract(tmpContract);
+            } catch (err) {
+              console.error("Error initializing provider:", err);
+            }
+          }
+        };
+      
+        initProvider();
+      }, []); // Empty dependency array ensures this runs only once
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -43,28 +85,14 @@ const IncidentForm: React.FC<IncidentFormProps> = ({ addIncident }) => {
     setTxStatus("Submitting to blockchain...");
 
     try {
-      const abiResponse = await fetch("/WatchtowerLogger-abi.json");
-      const WatchtowerLoggerABI = await abiResponse.json();
-      const WatchtowerLoggerAddress = process.env.NEXT_PUBLIC_WATCHTOWER_CONTRACT_ADDRESS;
-      if (!WatchtowerLoggerAddress) {
-        throw new Error("Watchtower contract address not found.");
-      }
       // Log the incident to the blockchain
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      await window.ethereum.request({ method: "eth_requestAccounts" });
-      const signer = provider.getSigner();
-      const contract = new ethers.Contract(
-        WatchtowerLoggerAddress,
-        WatchtowerLoggerABI,
-        await signer
-      );
       const incidentHash = keccak256(
         ethers.toUtf8Bytes(
           `${formData.reporter}${formData.type}${new Date().toISOString()}`
         )
       );
 
-      const tx = await contract.logIncident(
+      const tx = await contract?.logIncident(
         incidentHash,
         Math.floor(Date.now() / 1000)
       );
@@ -97,9 +125,11 @@ const IncidentForm: React.FC<IncidentFormProps> = ({ addIncident }) => {
         addIncident(data[0]);
         setFormData({ reporter: "", type: "", location: "", description: "" });
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) setError(err.message);
+
       setTxStatus("Transaction failed.");
+      console.error("Error:", err);
     } finally {
       setLoading(false);
     }
@@ -115,12 +145,12 @@ const IncidentForm: React.FC<IncidentFormProps> = ({ addIncident }) => {
       {txHash && (
         <p>
           <a
-            href={`https://basescan.org/tx/${txHash}`}
+            href={`https://sepolia.etherscan.io/tx/${txHash}`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-500 underline"
           >
-            View on BaseScan
+            View on Etherscan
           </a>
         </p>
       )}
