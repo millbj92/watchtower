@@ -81,10 +81,16 @@ const IncidentForm: React.FC<IncidentFormProps> = ({ addIncident }) => {
     setTxStatus("Submitting to blockchain...");
 
     try {
+        const { reporter, type, description } = formData;
+        const date = new Date().toISOString();
+        if (!reporter || !type || !description || !location) {
+            setError("Please fill in all fields and select a location.");
+            return;
+            }
       // Log the incident to the blockchain
       const incidentHash = keccak256(
         ethers.toUtf8Bytes(
-          `${formData.reporter}${formData.type}${new Date().toISOString()}`
+          `${reporter}${type}${description}${location.address}${location.latitude}${location.longitude}${date}`
         )
       );
 
@@ -104,13 +110,13 @@ const IncidentForm: React.FC<IncidentFormProps> = ({ addIncident }) => {
         .from("incidents")
         .insert([
           {
-            reporter: formData.reporter,
-            incident_type: formData.type,
-            location: location?.address,
-            description: formData.description,
-            latitude: location?.latitude, // Mock latitude
-            longitude: location?.longitude, // Mock longitude
-            timestamp: new Date().toISOString(),
+            reporter: reporter,
+            incident_type: type,
+            location: location.address,
+            description: description,
+            latitude: location.latitude, // Mock latitude
+            longitude: location.longitude, // Mock longitude
+            timestamp: date,
             transaction_hash: tx.hash,
           },
         ])
