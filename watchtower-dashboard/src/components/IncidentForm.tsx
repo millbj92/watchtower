@@ -182,9 +182,10 @@ const IncidentForm: React.FC<IncidentFormProps> = ({ addIncident }) => {
         onRetrieve={(res) => {
           const coords = res.features?.[0]?.geometry?.coordinates;
           const placeName =
-            res.features?.[0]?.properties.address ||
+            res.features?.[0]?.properties.full_address ||
             res.features?.[0]?.properties.name;
           console.log(placeName, coords);
+          console.log(res);
           setLocation({
             address: placeName,
             latitude: coords[1],

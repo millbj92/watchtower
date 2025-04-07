@@ -6,10 +6,12 @@ import IncidentList from "../components/IncidentList";
 import { Incident } from "../data/mockIncidents";
 import dynamic from "next/dynamic";
 
-
-const DynamicIncidentForm = dynamic(() => import("../components/IncidentForm"), {
-  ssr: false,
-});
+const DynamicIncidentForm = dynamic(
+  () => import("../components/IncidentForm"),
+  {
+    ssr: false,
+  }
+);
 
 const DynamicMap = dynamic(() => import("../components/Map"), {
   ssr: false,
