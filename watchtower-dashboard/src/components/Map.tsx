@@ -46,7 +46,7 @@ const Map: React.FC<MapProps> = ({ incidents }) => {
           position={[incident.latitude, incident.longitude]}
         >
           <DynamicPopup>
-            <strong>{incident.type}</strong>
+            <strong>{incident.incident_type}</strong>
             <p>{incident.location}</p>
             <p>{incident.description}</p>
           </DynamicPopup>

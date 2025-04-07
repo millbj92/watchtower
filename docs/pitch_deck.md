@@ -92,7 +92,7 @@ Next:
 ---
 
 ## 💳 The Ask
-**$250,000 pre-seed raise** to:
+**$750,000 pre-seed raise** to:
 - Hire part-time contributors (AI + blockchain)
 - Launch civic pilots + outreach
 - Build WalletConnect support

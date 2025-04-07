@@ -81,12 +81,12 @@ const IncidentForm: React.FC<IncidentFormProps> = ({ addIncident }) => {
     setTxStatus("Submitting to blockchain...");
 
     try {
-        const { reporter, type, description } = formData;
-        const date = new Date().toISOString();
-        if (!reporter || !type || !description || !location) {
-            setError("Please fill in all fields and select a location.");
-            return;
-            }
+      const { reporter, type, description } = formData;
+      const date = new Date().toISOString();
+      if (!reporter || !type || !description || !location) {
+        setError("Please fill in all fields and select a location.");
+        return;
+      }
       // Log the incident to the blockchain
       const incidentHash = keccak256(
         ethers.toUtf8Bytes(
@@ -181,7 +181,10 @@ const IncidentForm: React.FC<IncidentFormProps> = ({ addIncident }) => {
         placeholder="Search for location"
         onRetrieve={(res) => {
           const coords = res.features?.[0]?.geometry?.coordinates;
-          const placeName = res.features?.[0]?.properties.address;
+          const placeName =
+            res.features?.[0]?.properties.address ||
+            res.features?.[0]?.properties.name;
+          console.log(placeName, coords);
           setLocation({
             address: placeName,
             latitude: coords[1],

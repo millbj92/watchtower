@@ -1,6 +1,6 @@
 export type Incident = {
   id: string;
-  type: string;
+  incident_type: string;
   location: string;
   description: string;
   latitude: number;
@@ -18,7 +18,7 @@ export type IncidentLocation = {
 const mockIncidents: Incident[] = [
   {
     id: "1",
-    type: "Equipment Failure",
+    incident_type: "Equipment Failure",
     location: "Atlanta, GA",
     description: "Voting machine malfunctioned.",
     latitude: 33.749,
@@ -27,7 +27,7 @@ const mockIncidents: Incident[] = [
   },
   {
     id: "2",
-    type: "Voter Intimidation",
+    incident_type: "Voter Intimidation",
     location: "Detroit, MI",
     description: "Aggressive behavior near polling station.",
     latitude: 42.331,
@@ -36,7 +36,7 @@ const mockIncidents: Incident[] = [
   },
   {
     id: "3",
-    type: "Long Wait Times",
+    incident_type: "Long Wait Times",
     location: "Phoenix, AZ",
     description: "Wait times exceeded 2 hours.",
     latitude: 33.448,

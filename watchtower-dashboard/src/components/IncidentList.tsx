@@ -11,7 +11,7 @@ const IncidentList: React.FC<IncidentListProps> = ({ incidents }) => {
       <ul className="space-y-4">
         {incidents.map((incident) => (
           <li key={incident.id} className="border-b pb-2">
-            <p><strong>Type:</strong> {incident.type}</p>
+            <p><strong>Type:</strong> {incident.incident_type}</p>
             <p><strong>Location:</strong> {incident.location}</p>
             <p><strong>Description:</strong> {incident.description}</p>
             <p><strong>Timestamp:</strong> {incident.timestamp}</p>
